@@ -24,7 +24,7 @@ opts.im = 1;
 opts.re = 1;
 opts.geoc = 1;
 figure;
-[Jx,Jy,xx,yy,rho]=Jplot4(imp.bas,imp.meshp,I,1,1,1,opts);
+%[Jx,Jy,xx,yy,rho]=Jplot4(imp.bas,imp.meshp,I,1,1,1,opts);
 %end plot currents
 
 I_MoM = Z\V; %method of moments currents
@@ -36,7 +36,7 @@ geo_var(11,8) = 1; %by setting entry equal to one geometry is cut should try to 
 [ind1,index_geo,GeoArea] = Rec_region2bas(imp.bas,imp.meshp,geo_var); %This function returns the index values left over after cutting it is
 opts.geoind = geo_var;
 figure;
-[Jx,Jy,xx,yy,rho]=Jplot4(imp.bas,imp.meshp,I_MoM,1,1,1,opts);
+%[Jx,Jy,xx,yy,rho]=Jplot4(imp.bas,imp.meshp,I_MoM,1,1,1,opts);
 %end define geometry
 
 %here the new variables are defined
@@ -60,8 +60,6 @@ N4 = 0;
 N5 = 0;
 N6 = 0;
 N7 = 0;
-
-
 
 N1_geo = zeros(N_x,N_y);
 N2_geo = zeros(N_x,N_y);
@@ -114,30 +112,29 @@ for i = 1:10000
 %reinforced_var = ...;
 end
 
-figure;
-plot(sort(RE_MoM_new));
-figure;
-contour(N1_geo.');
-axis equal
-figure;
-contour(N2_geo.');
-axis equal
-figure;
-contour(N3_geo.');
-axis equal
-figure;
-contour(N4_geo.');
-axis equal
-figure;
-contour(N5_geo.');
-axis equal
-figure;
-contour(N6_geo.');
-axis equal
-figure;
-contour(N7_geo.');
-axis equal
-figure;
-contour(N1_geo.'+N2_geo.'+N3_geo.'+N4_geo.'+N5_geo.'+N6_geo.'+N7_geo.');
-axis equal
-
+%figure;
+%plot(sort(RE_MoM_new));
+%figure;
+%contour(N1_geo.');
+%axis equal
+%figure;
+%contour(N2_geo.');
+%axis equal
+%figure;
+%contour(N3_geo.');
+%axis equal
+%figure;
+%contour(N4_geo.');
+%axis equal
+%figure;
+%contour(N5_geo.');
+%axis equal
+%figure;
+%contour(N6_geo.');
+%axis equal
+%figure;
+%contour(N7_geo.');
+%axis equal
+%figure;
+%contour(N1_geo.'+N2_geo.'+N3_geo.'+N4_geo.'+N5_geo.'+N6_geo.'+N7_geo.');
+%axis equal
