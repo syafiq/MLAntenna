@@ -29,3 +29,8 @@ RE = np.max(RE)
 N = len(Z)
 V = np.zeros(N)
 V[math.floor(N/4)-17] = 1
+
+# start plot current
+eig_val, I_temp = la.eig(Rr,Rd)
+I = I_temp[index]
+
