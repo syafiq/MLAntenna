@@ -182,12 +182,12 @@ end
 %imds.Folders = 'Images';
 for i = 1:NN
     %str = compose('Images/fig%d.png', i);
-    imwrite(squeeze(sto_randvar(i,:,:)),sprintf('Images/fig%d.png',i))
+    imwrite(squeeze(sto_randvar(i,:,:)),sprintf('/home/syafiq/Documents/course/ML/ML_LTH/matlab/Images/fig%d.png',i))
 %     imds.Files(i) = sprintf('Images/fig%d.png',i);
 %     imds.Labels(i) = label_sample(i);
 end
 
-f = fullfile('Images');
+f = fullfile('/home/syafiq/Documents/course/ML/ML_LTH/matlab/Images');
 imds = imageDatastore(f, ...
      'IncludeSubfolders',true,'LabelSource','foldernames');
  
