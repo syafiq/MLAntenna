@@ -6,7 +6,7 @@ filename = sprintf('TenRX_rec_x1_y0p5_Nx32_Ny16_k0p4_1_2_%d_T',2);
 imp = load(filename);
 X0 = (imp.Z0 - imp.Z0')/(2i); %imaginary part of the impedance matrix
 Rr = (imp.Z0 + imp.Z0')/(2); %radiation resistance
-Rs = 1e-3; %surface resistance
+Rs = 5e-4; %surface resistance
 [V,D] = eig(Rr);
 D(D<0) = 0;
 Rr = V*D/V; %make Rr PSD
@@ -16,6 +16,7 @@ Z = Rd + 1i*X0; %impedance matrix
 N = length(Z); %number of elements some are in x and others in y direction
 V = zeros(N,1);
 V(floor(N/4)-17) = 1; %set the input voltage
+V(floor(N/4)+14) = 1;
 
 %start plot currents
 [I_temp,eig_val] = eig(Rr,Rd);
@@ -23,7 +24,7 @@ I = I_temp(:,index);
 opts.im = 1;
 opts.re = 1;
 opts.geoc = 1;
-figure;
+%figure;
 %[Jx,Jy,xx,yy,rho]=Jplot4(imp.bas,imp.meshp,I,1,1,1,opts);
 %end plot currents
 
@@ -35,7 +36,7 @@ geo_var = zeros(32,16);
 geo_var(11,8) = 1; %by setting entry equal to one geometry is cut should try to not cut the voltage source
 [ind1,index_geo,GeoArea] = Rec_region2bas(imp.bas,imp.meshp,geo_var); %This function returns the index values left over after cutting it is
 opts.geoind = geo_var;
-figure;
+%figure;
 %[Jx,Jy,xx,yy,rho]=Jplot4(imp.bas,imp.meshp,I_MoM,1,1,1,opts);
 %end define geometry
 
@@ -53,29 +54,61 @@ N_y = length(geo_var(1,:));
 ind_feed = find(V == 1);
 y_feed = floor(ind_feed/(N_x-1)) + 1;
 x_feed = ind_feed - (N_x-1)*(y_feed-1) + 1;
-N1 = 0; %number of samples in class
-N2 = 0;
-N3 = 0;
-N4 = 0;
-N5 = 0;
-N6 = 0;
-N7 = 0;
 
-N1_geo = zeros(N_x,N_y);
-N2_geo = zeros(N_x,N_y);
-N3_geo = zeros(N_x,N_y);
-N4_geo = zeros(N_x,N_y);
-N5_geo = zeros(N_x,N_y);
-N6_geo = zeros(N_x,N_y);
-N7_geo = zeros(N_x,N_y);
+
+
+
+NN = 10000;
 
 reinforced_var = ones(N_x,N_y);
+
+
+
+N_classes = 10;
+N_data = zeros(N_classes,1);
+N_geo = zeros(N_classes, N_x, N_y);
+%N_geo_data = zeros(NN,N_x, N_y);
+
+N_geo_data_vec = zeros(NN,N_x*N_y);
+label_sample = zeros(NN,1);
+
+label_count = zeros(N_classes,1);
+class_boundary = zeros(N_classes,1);
+class_boundary(1) = 0.45;
+class_boundary(2) = 0.4;
+class_boundary(3) = 0.35;
+class_boundary(4) = 0.3;
+class_boundary(5) = 0.25;
+class_boundary(6) = 0.2;
+class_boundary(7) = 0.15;
+class_boundary(8) = 0.1;
+class_boundary(9) = 0.05;
+class_boundary(10) = 0;
+% class_boundary(5) = 0.15;
+% class_boundary(6) = 0.07;
+% class_boundary(7) = 0.04;
+% class_boundary(8) = 0;
+
+sto_randvar = zeros(NN,32,16);
 %for n = 1:10
-for i = 1:10000
-   % rng shuffle
+i = 0;
+
+
+ii = 0;
+while min(label_count) <= 300 || sum(label_count) < 10000  
+    i = i + 1;
+    % rng shuffle
     Rand_var = randi([0 1],N_x,N_y);
     Rand_var(x_feed,y_feed) = 0;
     Rand_var(x_feed-1,y_feed) = 0;
+    Rand_var(x_feed,y_feed+1) = 0;
+    Rand_var(x_feed-1,y_feed+1) = 0;
+    
+    Rand_var(:,9:16) = flip(Rand_var(:,1:8),2); %enforce symmetry
+    
+%     Rand_var(x_feed,y_feed+1) = randi([0 1],1,1); %break symmetry
+%     Rand_var(x_feed-1,y_feed+1) = randi([0 1],1,1); %break symmetry
+    
     [ind1,index_geo,GeoArea] = Rec_region2bas(imp.bas,imp.meshp,Rand_var);
     V_new = V(index_geo);
     Z_new = Z(index_geo,index_geo);
@@ -84,57 +117,168 @@ for i = 1:10000
     Rd_new = Rd(index_geo,index_geo);
     RE_MoM_new(i) = real((I_MoM_new'*Rr_new*I_MoM_new)/(I_MoM_new'*Rd_new*I_MoM_new));
     opts.geoind = Rand_var;
-    if RE_MoM_new(i) > 0.6 %class 1
-        N1_geo = N1_geo + Rand_var;
-        N1 = N1 + 1;
-        figure;
-        [Jx,Jy,xx,yy,rho]=Jplot4(imp.bas,imp.meshp,I_MoM,1,1,1,opts);
-    elseif RE_MoM_new(i) > 0.5 %class 2
-        N2_geo = N2_geo + Rand_var;
-        N2 = N2 + 1;
-    elseif RE_MoM_new(i) > 0.4 %class 3
-        N3_geo = N3_geo + Rand_var;
-        N3 = N3 + 1;
-    elseif RE_MoM_new(i) > 0.3 %class 4
-        N4_geo = N4_geo + Rand_var;
-        N4 = N4 + 1;
-    elseif RE_MoM_new(i) > 0.2 %class 5
-        N5_geo = N5_geo + Rand_var;
-        N5 = N5 + 1;
-    elseif RE_MoM_new(i) > 0.1 %class 6
-        N6_geo = N6_geo + Rand_var;
-        N6 = N6 + 1;
-    else   %class 7
-        N7_geo = N7_geo + Rand_var;
-        N7 = N7 + 1;
+    
+    
+    
+    
+    for j = 1:N_classes
+        if RE_MoM_new(i) >= class_boundary(j)
+            if label_count(j) < 3000
+            ii = ii + 1;
+            N_data(j) = N_data(j) + 1;
+            N_geo(j,:,:) = squeeze(N_geo(j,:,:)) + Rand_var;
+            N_geo_data_vec(ii,:) = Rand_var(:);
+            label_sample(ii) = j-1;
+            label_count(j) = label_count(j) + 1;
+            sto_randvar(ii,:,:) = Rand_var;
+            end
+            break;
+        end
     end
-%end
-%reinforced_var = ...;
+    
+    
+    
+    %end
+    %reinforced_var = ...;
 end
 
-%figure;
-%plot(sort(RE_MoM_new));
-%figure;
-%contour(N1_geo.');
-%axis equal
-%figure;
-%contour(N2_geo.');
-%axis equal
-%figure;
-%contour(N3_geo.');
-%axis equal
-%figure;
-%contour(N4_geo.');
-%axis equal
-%figure;
-%contour(N5_geo.');
-%axis equal
-%figure;
-%contour(N6_geo.');
-%axis equal
-%figure;
-%contour(N7_geo.');
-%axis equal
-%figure;
-%contour(N1_geo.'+N2_geo.'+N3_geo.'+N4_geo.'+N5_geo.'+N6_geo.'+N7_geo.');
-%axis equal
+NN = ii;
+
+figure;
+plot(sort(RE_MoM_new));
+
+for i = 1:N_classes
+    figure;
+    contour(squeeze(N_geo(i,:,:)).');
+    axis equal
+end
+
+
+
+
+Sigma_c = zeros(N_classes, N_x*N_y,N_x*N_y);
+mean_data = zeros(N_classes, N_x,N_y);
+mean_data_vec = zeros(N_classes, N_x*N_y);
+prior_c = zeros(N_classes,1);
+N_total = sum(N_data);
+
+for i = 1:N_classes
+    mean_data(i,:,:) = N_geo(i,:,:)/N_data(i);
+    mean_data_vec(i,:) = mean_data(i,:);
+    prior_c(i) = N_data(i)/N_total;
+end
+
+
+% % % % % for i = 1:NN
+% % % % %     Sigma_c(label_sample(i),:,:) = squeeze(Sigma_c(label_sample(i),:,:)) + (squeeze(N_geo_data_vec(i,:)) - mean_data_vec(label_sample(i),:))*(squeeze(N_geo_data_vec(i,:)) - mean_data_vec(label_sample(i),:)).';
+% % % % % end
+
+% digitDatasetPath = fullfile(matlabroot,'toolbox','nnet','nndemos', ...
+%     'nndatasets','DigitDataset');
+% imds = imageDatastore(digitDatasetPath, ...
+%     'IncludeSubfolders',true,'LabelSource','foldernames');
+
+
+%imds.Folders = 'Images';
+for i = 1:NN
+    %str = compose('Images/fig%d.png', i);
+    imwrite(squeeze(sto_randvar(i,:,:)),sprintf('Images/fig%d.png',i))
+%     imds.Files(i) = sprintf('Images/fig%d.png',i);
+%     imds.Labels(i) = label_sample(i);
+end
+
+f = fullfile('Images');
+imds = imageDatastore(f, ...
+     'IncludeSubfolders',true,'LabelSource','foldernames');
+ 
+ 
+ cats = label_sample(1:NN);
+ 
+ try_cat = categorical(cats);
+ for i = 1:NN
+    imds.Labels(i) = try_cat(i);
+end
+
+
+figure;
+perm = randperm(10000,20);
+for i = 1:20
+    subplot(5,4,i);
+    imshow(imds.Files{perm(i)});
+end
+
+labelCount = countEachLabel(imds)
+
+img = readimage(imds,1);
+size(img)
+
+numTrainFiles = 300;
+[imdsTrain,imdsValidation] = splitEachLabel(imds,numTrainFiles,'randomize');
+
+CC = length(unique(label_sample));
+
+layers = [
+    imageInputLayer([32 16 1])
+    
+    convolution2dLayer(3,8,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    maxPooling2dLayer(2,'Stride',2)
+    
+    convolution2dLayer(3,16,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    maxPooling2dLayer(2,'Stride',2)
+    
+    convolution2dLayer(3,32,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    fullyConnectedLayer(CC+1)
+    softmaxLayer
+    classificationLayer];
+
+
+
+
+options = trainingOptions('sgdm', ...
+    'InitialLearnRate',0.01, ...
+    'MaxEpochs',4, ...
+    'Shuffle','every-epoch', ...
+    'ValidationData',imdsValidation, ...
+    'ValidationFrequency',30, ...
+    'Verbose',false, ...
+    'Plots','training-progress');
+
+
+% options = trainingOptions('sgdm', ...
+%     'LearnRateSchedule','piecewise', ...
+%     'LearnRateDropFactor',0.2, ...
+%     'LearnRateDropPeriod',5, ...
+%     'MaxEpochs',20, ...
+%     'ValidationData',imdsValidation, ...
+%     'ValidationFrequency',30, ...
+%     'MiniBatchSize',64, ...
+%     'Plots','training-progress')
+
+
+net = trainNetwork(imdsTrain,layers,options);
+
+
+recycle('off');
+delete('Images\*');
+
+% %classify 
+% class_c = 1;
+% P_c = 0;
+% for i = 1:10
+%     class_c = 1;
+%     for j = 1:N_classes
+%         P_c = log(prior_c(j)) - 0.5*log(abs(2*pi*Sigma_c(,:,:)));
+%     end
+% end 
+% 
+% 
+
