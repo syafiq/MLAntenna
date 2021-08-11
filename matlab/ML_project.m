@@ -55,16 +55,11 @@ ind_feed = find(V == 1);
 y_feed = floor(ind_feed/(N_x-1)) + 1;
 x_feed = ind_feed - (N_x-1)*(y_feed-1) + 1;
 
-
-
-
 NN = 10000;
 
 reinforced_var = ones(N_x,N_y);
 
-
-
-N_classes = 10;
+N_classes = 4;
 N_data = zeros(N_classes,1);
 N_geo = zeros(N_classes, N_x, N_y);
 %N_geo_data = zeros(NN,N_x, N_y);
@@ -93,7 +88,6 @@ sto_randvar = zeros(NN,32,16);
 %for n = 1:10
 i = 0;
 
-
 ii = 0;
 while min(label_count) <= 300 || sum(label_count) < 10000  
     i = i + 1;
@@ -118,9 +112,6 @@ while min(label_count) <= 300 || sum(label_count) < 10000
     RE_MoM_new(i) = real((I_MoM_new'*Rr_new*I_MoM_new)/(I_MoM_new'*Rd_new*I_MoM_new));
     opts.geoind = Rand_var;
     
-    
-    
-    
     for j = 1:N_classes
         if RE_MoM_new(i) >= class_boundary(j)
             if label_count(j) < 3000
@@ -135,8 +126,6 @@ while min(label_count) <= 300 || sum(label_count) < 10000
             break;
         end
     end
-    
-    
     
     %end
     %reinforced_var = ...;
@@ -153,9 +142,6 @@ for i = 1:N_classes
     axis equal
 end
 
-
-
-
 Sigma_c = zeros(N_classes, N_x*N_y,N_x*N_y);
 mean_data = zeros(N_classes, N_x,N_y);
 mean_data_vec = zeros(N_classes, N_x*N_y);
@@ -168,7 +154,6 @@ for i = 1:N_classes
     prior_c(i) = N_data(i)/N_total;
 end
 
-
 % % % % % for i = 1:NN
 % % % % %     Sigma_c(label_sample(i),:,:) = squeeze(Sigma_c(label_sample(i),:,:)) + (squeeze(N_geo_data_vec(i,:)) - mean_data_vec(label_sample(i),:))*(squeeze(N_geo_data_vec(i,:)) - mean_data_vec(label_sample(i),:)).';
 % % % % % end
@@ -177,7 +162,6 @@ end
 %     'nndatasets','DigitDataset');
 % imds = imageDatastore(digitDatasetPath, ...
 %     'IncludeSubfolders',true,'LabelSource','foldernames');
-
 
 %imds.Folders = 'Images';
 for i = 1:NN
@@ -191,14 +175,12 @@ f = fullfile('/home/syafiq/Documents/course/ML/ML_LTH/matlab/Images');
 imds = imageDatastore(f, ...
      'IncludeSubfolders',true,'LabelSource','foldernames');
  
+cats = label_sample(1:NN);
  
- cats = label_sample(1:NN);
- 
- try_cat = categorical(cats);
- for i = 1:NN
+try_cat = categorical(cats);
+for i = 1:NN
     imds.Labels(i) = try_cat(i);
 end
-
 
 figure;
 perm = randperm(10000,20);
@@ -240,9 +222,6 @@ layers = [
     softmaxLayer
     classificationLayer];
 
-
-
-
 options = trainingOptions('sgdm', ...
     'InitialLearnRate',0.01, ...
     'MaxEpochs',4, ...
@@ -251,7 +230,6 @@ options = trainingOptions('sgdm', ...
     'ValidationFrequency',30, ...
     'Verbose',false, ...
     'Plots','training-progress');
-
 
 % options = trainingOptions('sgdm', ...
 %     'LearnRateSchedule','piecewise', ...
@@ -263,9 +241,7 @@ options = trainingOptions('sgdm', ...
 %     'MiniBatchSize',64, ...
 %     'Plots','training-progress')
 
-
 net = trainNetwork(imdsTrain,layers,options);
-
 
 recycle('off');
 delete('Images\*');
