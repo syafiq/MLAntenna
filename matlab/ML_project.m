@@ -298,8 +298,8 @@ labelCount = countEachLabel(imds);
 img = readimage(imds,1);
 size(img)
 
-numTrainFiles = 999;
-[imdsTrain,imdsValidation] = splitEachLabel(imds,numTrainFiles,'randomize');
+numTrainFiles = 750;
+[imdsTrain,imdsTest,imdsValidation] = splitEachLabel(imds,.9,.05);
 
 CC = length(unique(label_sample));
 
@@ -362,6 +362,9 @@ options = trainingOptions('sgdm', ...
 
 net = trainNetwork(imdsTrain,layers,options);
 
+YPred = classify(net,imdsTest);
+YTest = imdsTest.Labels;
+accuracy = sum(YPred == YTest)/numel(YTest)
 
 recycle('off');
 delete('Images\*');
